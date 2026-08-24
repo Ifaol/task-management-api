@@ -23,7 +23,7 @@ class TaskCreate(TaskBase):
     workspace_id: UUID
 
 
-class TaskUpdate(TaskBase):
+class TaskUpdate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
     description: str | None = None
     status: TaskStatus | None = None
