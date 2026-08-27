@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 
+from .api.tasks import router
+
+
 app = FastAPI(title="Task Management API")
+
+
+app.include_router(router)
 
 
 @app.get("/")
