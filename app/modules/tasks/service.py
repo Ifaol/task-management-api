@@ -3,11 +3,8 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
+from .repository import task_repository
 from .schema import TaskCreate, TaskResponse, TaskUpdate
-
-
-# In-memory task storage
-tasks: dict[UUID, TaskResponse] = {}
 
 
 def create_task(task: TaskCreate) -> TaskResponse:
@@ -26,17 +23,15 @@ def create_task(task: TaskCreate) -> TaskResponse:
         updated_at=now,
     )
 
-    tasks[task_id] = new_task
-
-    return new_task
+    return task_repository.create(new_task)
 
 
 def get_tasks() -> list[TaskResponse]:
-    return list(tasks.values())
+    return task_repository.get_all()
 
 
 def get_task(task_id: UUID) -> TaskResponse:
-    task = tasks.get(task_id)
+    task = task_repository.get_by_id(task_id)
 
     if task is None:
         raise HTTPException(
@@ -51,7 +46,7 @@ def update_task(
     task_id: UUID,
     task_update: TaskUpdate,
 ) -> TaskResponse:
-    task = tasks.get(task_id)
+    task = task_repository.get_by_id(task_id)
 
     if task is None:
         raise HTTPException(
@@ -68,13 +63,11 @@ def update_task(
         }
     )
 
-    tasks[task_id] = updated_task
-
-    return updated_task
+    return task_repository.update(updated_task)
 
 
 def delete_task(task_id: UUID) -> None:
-    task = tasks.get(task_id)
+    task = task_repository.get_by_id(task_id)
 
     if task is None:
         raise HTTPException(
@@ -82,4 +75,4 @@ def delete_task(task_id: UUID) -> None:
             detail="Task not found",
         )
 
-    del tasks[task_id]
+    task_repository.delete(task_id)
