@@ -27,7 +27,7 @@ router = APIRouter(
     response_model=TaskResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_task_route(task: TaskCreate):
+def create_task_route(task: TaskCreate) -> TaskResponse:
     return create_task(task)
 
 
@@ -35,7 +35,7 @@ def create_task_route(task: TaskCreate):
     "/",
     response_model=list[TaskResponse],
 )
-def get_tasks_route():
+def get_tasks_route() -> list[TaskResponse]:
     return get_tasks()
 
 
@@ -43,7 +43,7 @@ def get_tasks_route():
     "/{task_id}",
     response_model=TaskResponse,
 )
-def get_task_route(task_id: UUID):
+def get_task_route(task_id: UUID) -> TaskResponse:
     return get_task(task_id)
 
 
@@ -54,7 +54,7 @@ def get_task_route(task_id: UUID):
 def update_task_route(
     task_id: UUID,
     task_update: TaskUpdate,
-):
+) -> TaskResponse:
     return update_task(task_id, task_update)
 
 
@@ -62,5 +62,5 @@ def update_task_route(
     "/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_task_route(task_id: UUID):
+def delete_task_route(task_id: UUID) -> None:
     delete_task(task_id)
