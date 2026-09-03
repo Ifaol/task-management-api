@@ -2,12 +2,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
-from ..modules.tasks.schema import (
+from app.modules.tasks.schema import (
     TaskCreate,
     TaskResponse,
     TaskUpdate,
 )
-from ..modules.tasks.service import (
+from app.modules.tasks.service import (
     create_task,
     delete_task,
     get_task,

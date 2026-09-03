@@ -1,5 +1,5 @@
 from uuid import UUID
-from .schema import TaskResponse
+from app.modules.tasks.schema import TaskResponse
 
 
 class TaskRepository:
