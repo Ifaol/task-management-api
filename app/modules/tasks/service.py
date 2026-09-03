@@ -3,8 +3,8 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
-from .repository import task_repository
-from .schema import TaskCreate, TaskResponse, TaskUpdate
+from app.modules.tasks.repository import task_repository
+from app.modules.tasks.schema import TaskCreate, TaskResponse, TaskUpdate
 
 
 def create_task(task: TaskCreate) -> TaskResponse:
