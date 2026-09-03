@@ -24,6 +24,3 @@ class TaskRepository:
 
     def delete(self, task_id: UUID) -> None:
         del self.tasks[task_id]
-
-
-task_repository = TaskRepository()

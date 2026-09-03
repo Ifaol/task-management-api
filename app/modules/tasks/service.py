@@ -3,11 +3,18 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
-from app.modules.tasks.repository import task_repository
-from app.modules.tasks.schema import TaskCreate, TaskResponse, TaskUpdate
+from app.modules.tasks.repository import TaskRepository
+from app.modules.tasks.schema import (
+    TaskCreate,
+    TaskResponse,
+    TaskUpdate,
+)
 
 
-def create_task(task: TaskCreate) -> TaskResponse:
+def create_task(
+    task: TaskCreate,
+    repository: TaskRepository,
+) -> TaskResponse:
     task_id = uuid4()
     now = datetime.now(timezone.utc)
 
@@ -23,15 +30,20 @@ def create_task(task: TaskCreate) -> TaskResponse:
         updated_at=now,
     )
 
-    return task_repository.create(new_task)
+    return repository.create(new_task)
 
 
-def get_tasks() -> list[TaskResponse]:
-    return task_repository.get_all()
+def get_tasks(
+    repository: TaskRepository,
+) -> list[TaskResponse]:
+    return repository.get_all()
 
 
-def get_task(task_id: UUID) -> TaskResponse:
-    task = task_repository.get_by_id(task_id)
+def get_task(
+    task_id: UUID,
+    repository: TaskRepository,
+) -> TaskResponse:
+    task = repository.get_by_id(task_id)
 
     if task is None:
         raise HTTPException(
@@ -45,8 +57,9 @@ def get_task(task_id: UUID) -> TaskResponse:
 def update_task(
     task_id: UUID,
     task_update: TaskUpdate,
+    repository: TaskRepository,
 ) -> TaskResponse:
-    task = task_repository.get_by_id(task_id)
+    task = repository.get_by_id(task_id)
 
     if task is None:
         raise HTTPException(
@@ -63,11 +76,14 @@ def update_task(
         }
     )
 
-    return task_repository.update(updated_task)
+    return repository.update(updated_task)
 
 
-def delete_task(task_id: UUID) -> None:
-    task = task_repository.get_by_id(task_id)
+def delete_task(
+    task_id: UUID,
+    repository: TaskRepository,
+) -> None:
+    task = repository.get_by_id(task_id)
 
     if task is None:
         raise HTTPException(
@@ -75,4 +91,4 @@ def delete_task(task_id: UUID) -> None:
             detail="Task not found",
         )
 
-    task_repository.delete(task_id)
+    repository.delete(task_id)
