@@ -1,9 +1,7 @@
 import jwt
 from datetime import datetime, timedelta, timezone
 
-SECRET_KEY = "simret"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+from app.core.config import settings
 
 
 def create_access_token(
@@ -14,7 +12,7 @@ def create_access_token(
 
     if expires_delta is None:
         expires_delta = timedelta(
-            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+            minutes=settings.access_token_expire_minutes
         )
 
     expire = datetime.now(timezone.utc) + expires_delta
@@ -23,6 +21,6 @@ def create_access_token(
 
     return jwt.encode(
         to_encode,
-        SECRET_KEY,
-        algorithm=ALGORITHM,
+        settings.jwt_secret_key,
+        algorithm=settings.jwt_algorithm,
     )
