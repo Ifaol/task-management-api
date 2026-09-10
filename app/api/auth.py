@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 
 from app.core.dependencies import get_user_repository
 from app.modules.auth.schema import (
@@ -12,6 +12,7 @@ from app.modules.auth.service import (
     register_user,
 )
 from app.modules.users.repository import UserRepository
+from app.services.email import send_welcome_email
 
 
 router = APIRouter(
@@ -27,12 +28,20 @@ router = APIRouter(
 )
 def register_route(
     user: RegisterRequest,
+    background_tasks: BackgroundTasks,
     repository: UserRepository = Depends(get_user_repository),
 ) -> RegisterResponse:
-    return register_user(
+    response = register_user(
         user,
         repository,
     )
+
+    background_tasks.add_task(
+        send_welcome_email,
+        user.email,
+    )
+
+    return response
 
 
 @router.post(
