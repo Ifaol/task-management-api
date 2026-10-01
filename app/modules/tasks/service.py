@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
+from app.modules.tasks.model import Task
 from app.modules.tasks.repository import TaskRepository
 from app.modules.tasks.schema import (
     TaskCreate,
@@ -15,11 +16,10 @@ def create_task(
     task: TaskCreate,
     repository: TaskRepository,
 ) -> TaskResponse:
-    task_id = uuid4()
     now = datetime.now(timezone.utc)
 
-    new_task = TaskResponse(
-        id=task_id,
+    new_task = Task(
+        id=uuid4(),
         workspace_id=task.workspace_id,
         title=task.title,
         description=task.description,
@@ -30,13 +30,20 @@ def create_task(
         updated_at=now,
     )
 
-    return repository.create(new_task)
+    created_task = repository.create(new_task)
+
+    return TaskResponse.model_validate(created_task)
 
 
 def get_tasks(
     repository: TaskRepository,
 ) -> list[TaskResponse]:
-    return repository.get_all()
+    tasks = repository.get_all()
+
+    return [
+        TaskResponse.model_validate(task)
+        for task in tasks
+    ]
 
 
 def get_task(
@@ -51,7 +58,7 @@ def get_task(
             detail="Task not found",
         )
 
-    return task
+    return TaskResponse.model_validate(task)
 
 
 def update_task(
@@ -69,14 +76,14 @@ def update_task(
 
     update_data = task_update.model_dump(exclude_unset=True)
 
-    updated_task = task.model_copy(
-        update={
-            **update_data,
-            "updated_at": datetime.now(timezone.utc),
-        }
-    )
+    for field, value in update_data.items():
+        setattr(task, field, value)
 
-    return repository.update(updated_task)
+    task.updated_at = datetime.now(timezone.utc)
+
+    updated_task = repository.update(task)
+
+    return TaskResponse.model_validate(updated_task)
 
 
 def delete_task(

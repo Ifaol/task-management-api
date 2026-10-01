@@ -1,8 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
-
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TaskStatus(StrEnum):
@@ -32,6 +31,7 @@ class TaskUpdate(BaseModel):
 
 
 class TaskResponse(TaskBase):
+    model_config = ConfigDict(from_attributes=True)
     id: UUID
     workspace_id: UUID
     created_at: datetime
