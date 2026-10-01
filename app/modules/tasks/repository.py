@@ -1,26 +1,39 @@
 from uuid import UUID
-from app.modules.tasks.schema import TaskResponse
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.modules.tasks.model import Task
 
 
 class TaskRepository:
-    def __init__(self):
-        self.tasks: dict[UUID, TaskResponse] = {}
+    def __init__(self, db: Session):
+        self.db = db
 
-    def create(self, task: TaskResponse) -> TaskResponse:
-        self.tasks[task.id] = task
+    def create(self, task: Task) -> Task:
+        self.db.add(task)
+        self.db.commit()
+        self.db.refresh(task)
 
         return task
 
-    def get_all(self) -> list[TaskResponse]:
-        return list(self.tasks.values())
+    def get_all(self) -> list[Task]:
+        statement = select(Task)
 
-    def get_by_id(self, task_id: UUID) -> TaskResponse | None:
-        return self.tasks.get(task_id)
+        return list(self.db.scalars(statement).all())
 
-    def update(self, task: TaskResponse) -> TaskResponse:
-        self.tasks[task.id] = task
+    def get_by_id(self, task_id: UUID) -> Task | None:
+        return self.db.get(Task, task_id)
+
+    def update(self, task: Task) -> Task:
+        self.db.commit()
+        self.db.refresh(task)
 
         return task
 
     def delete(self, task_id: UUID) -> None:
-        del self.tasks[task_id]
+        task = self.get_by_id(task_id)
+
+        if task is not None:
+            self.db.delete(task)
+            self.db.commit()

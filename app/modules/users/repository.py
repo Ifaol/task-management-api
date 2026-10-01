@@ -1,34 +1,44 @@
 from uuid import UUID
 
-from app.modules.users.schema import UserInDB
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.modules.users.model import User
 
 
 class UserRepository:
-    def __init__(self):
-        self.users: dict[UUID, UserInDB] = {}
+    def __init__(self, db: Session):
+        self.db = db
 
-    def create(self, user: UserInDB) -> UserInDB:
-        self.users[user.id] = user
+    def create(self, user: User) -> User:
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
 
         return user
 
-    def get_all(self) -> list[UserInDB]:
-        return list(self.users.values())
+    def get_all(self) -> list[User]:
+        statement = select(User)
 
-    def get_by_id(self, user_id: UUID) -> UserInDB | None:
-        return self.users.get(user_id)
+        return list(self.db.scalars(statement).all())
 
-    def get_by_email(self, email: str) -> UserInDB | None:
-        for user in self.users.values():
-            if user.email == email:
-                return user
+    def get_by_id(self, user_id: UUID) -> User | None:
+        return self.db.get(User, user_id)
 
-        return None
+    def get_by_email(self, email: str) -> User | None:
+        statement = select(User).where(User.email == email)
 
-    def update(self, user: UserInDB) -> UserInDB:
-        self.users[user.id] = user
+        return self.db.scalars(statement).first()
+
+    def update(self, user: User) -> User:
+        self.db.commit()
+        self.db.refresh(user)
 
         return user
 
     def delete(self, user_id: UUID) -> None:
-        del self.users[user_id]
+        user = self.get_by_id(user_id)
+
+        if user is not None:
+            self.db.delete(user)
+            self.db.commit()
