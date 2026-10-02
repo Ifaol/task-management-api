@@ -7,11 +7,13 @@ from app.core.dependencies import (
     get_workspace_member_repository,
     get_workspace_repository,
 )
+from app.core.rbac import RequireRole
 from app.modules.users.repository import UserRepository
 from app.modules.workspace_members.repository import WorkspaceMemberRepository
 from app.modules.workspace_members.schema import (
     WorkspaceMemberCreate,
     WorkspaceMemberResponse,
+    WorkspaceMemberRole,
 )
 from app.modules.workspace_members.service import (
     create_workspace_member,
@@ -37,6 +39,9 @@ router = APIRouter(
 def create_workspace_member_route(
     workspace_id: UUID,
     member: WorkspaceMemberCreate,
+    current_user=Depends(
+        RequireRole(WorkspaceMemberRole.OWNER),
+    ),
     repository: WorkspaceMemberRepository = Depends(
         get_workspace_member_repository,
     ),
@@ -62,6 +67,9 @@ def create_workspace_member_route(
 )
 def get_workspace_members_route(
     workspace_id: UUID,
+    current_user=Depends(
+        RequireRole(WorkspaceMemberRole.VIEWER),
+    ),
     repository: WorkspaceMemberRepository = Depends(
         get_workspace_member_repository,
     ),
@@ -83,6 +91,9 @@ def get_workspace_members_route(
 def get_workspace_member_route(
     workspace_id: UUID,
     user_id: UUID,
+    current_user=Depends(
+        RequireRole(WorkspaceMemberRole.VIEWER),
+    ),
     repository: WorkspaceMemberRepository = Depends(
         get_workspace_member_repository,
     ),
@@ -102,6 +113,9 @@ def update_workspace_member_route(
     workspace_id: UUID,
     user_id: UUID,
     member_update: WorkspaceMemberCreate,
+    current_user=Depends(
+        RequireRole(WorkspaceMemberRole.OWNER),
+    ),
     repository: WorkspaceMemberRepository = Depends(
         get_workspace_member_repository,
     ),
@@ -121,6 +135,9 @@ def update_workspace_member_route(
 def delete_workspace_member_route(
     workspace_id: UUID,
     user_id: UUID,
+    current_user=Depends(
+        RequireRole(WorkspaceMemberRole.OWNER),
+    ),
     repository: WorkspaceMemberRepository = Depends(
         get_workspace_member_repository,
     ),

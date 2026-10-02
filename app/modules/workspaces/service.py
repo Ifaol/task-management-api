@@ -3,6 +3,9 @@ from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
 
+from app.modules.workspace_members.model import WorkspaceMember
+from app.modules.workspace_members.repository import WorkspaceMemberRepository
+from app.modules.workspace_members.schema import WorkspaceMemberRole
 from app.modules.workspaces.model import Workspace
 from app.modules.workspaces.repository import WorkspaceRepository
 from app.modules.workspaces.schema import (
@@ -14,6 +17,8 @@ from app.modules.workspaces.schema import (
 def create_workspace(
     workspace: WorkspaceCreate,
     repository: WorkspaceRepository,
+    member_repository: WorkspaceMemberRepository,
+    user_id: UUID,
 ) -> WorkspaceResponse:
     now = datetime.now(timezone.utc)
 
@@ -24,6 +29,15 @@ def create_workspace(
     )
 
     created_workspace = repository.create(new_workspace)
+
+    owner_membership = WorkspaceMember(
+        workspace_id=created_workspace.id,
+        user_id=user_id,
+        role=WorkspaceMemberRole.OWNER,
+        joined_at=now,
+    )
+
+    member_repository.create(owner_membership)
 
     return WorkspaceResponse.model_validate(created_workspace)
 

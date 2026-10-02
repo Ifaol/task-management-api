@@ -2,7 +2,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
 
-from app.core.dependencies import get_workspace_repository
+from app.core.dependencies import (
+    get_current_user,
+    get_workspace_member_repository,
+    get_workspace_repository,
+)
+from app.core.rbac import RequireRole
+from app.modules.users.model import User
+from app.modules.workspace_members.repository import WorkspaceMemberRepository
+from app.modules.workspace_members.schema import WorkspaceMemberRole
 from app.modules.workspaces.repository import WorkspaceRepository
 from app.modules.workspaces.schema import (
     WorkspaceCreate,
@@ -30,9 +38,20 @@ router = APIRouter(
 )
 def create_workspace_route(
     workspace: WorkspaceCreate,
-    repository: WorkspaceRepository = Depends(get_workspace_repository),
+    current_user: User = Depends(get_current_user),
+    repository: WorkspaceRepository = Depends(
+        get_workspace_repository,
+    ),
+    member_repository: WorkspaceMemberRepository = Depends(
+        get_workspace_member_repository,
+    ),
 ) -> WorkspaceResponse:
-    return create_workspace(workspace, repository)
+    return create_workspace(
+        workspace=workspace,
+        repository=repository,
+        member_repository=member_repository,
+        user_id=current_user.id,
+    )
 
 
 @router.get(
@@ -40,7 +59,10 @@ def create_workspace_route(
     response_model=list[WorkspaceResponse],
 )
 def get_workspaces_route(
-    repository: WorkspaceRepository = Depends(get_workspace_repository),
+    current_user: User = Depends(get_current_user),
+    repository: WorkspaceRepository = Depends(
+        get_workspace_repository,
+    ),
 ) -> list[WorkspaceResponse]:
     return get_workspaces(repository)
 
@@ -51,9 +73,17 @@ def get_workspaces_route(
 )
 def get_workspace_route(
     workspace_id: UUID,
-    repository: WorkspaceRepository = Depends(get_workspace_repository),
+    current_user: User = Depends(
+        RequireRole(WorkspaceMemberRole.VIEWER),
+    ),
+    repository: WorkspaceRepository = Depends(
+        get_workspace_repository,
+    ),
 ) -> WorkspaceResponse:
-    return get_workspace(workspace_id, repository)
+    return get_workspace(
+        workspace_id,
+        repository,
+    )
 
 
 @router.patch(
@@ -62,12 +92,17 @@ def get_workspace_route(
 )
 def update_workspace_route(
     workspace_id: UUID,
-    workspace: WorkspaceCreate,
-    repository: WorkspaceRepository = Depends(get_workspace_repository),
+    workspace_update: WorkspaceCreate,
+    current_user: User = Depends(
+        RequireRole(WorkspaceMemberRole.OWNER),
+    ),
+    repository: WorkspaceRepository = Depends(
+        get_workspace_repository,
+    ),
 ) -> WorkspaceResponse:
     return update_workspace(
         workspace_id,
-        workspace,
+        workspace_update,
         repository,
     )
 
@@ -78,6 +113,14 @@ def update_workspace_route(
 )
 def delete_workspace_route(
     workspace_id: UUID,
-    repository: WorkspaceRepository = Depends(get_workspace_repository),
+    current_user: User = Depends(
+        RequireRole(WorkspaceMemberRole.OWNER),
+    ),
+    repository: WorkspaceRepository = Depends(
+        get_workspace_repository,
+    ),
 ) -> None:
-    delete_workspace(workspace_id, repository)
+    delete_workspace(
+        workspace_id,
+        repository,
+    )
