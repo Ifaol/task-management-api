@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.modules.tasks.repository import TaskRepository
 from app.modules.users.repository import UserRepository
+from app.modules.workspaces.repository import WorkspaceRepository
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -27,3 +28,9 @@ def get_user_repository(
     db: Session = Depends(get_db),
 ) -> UserRepository:
     return UserRepository(db)
+
+
+def get_workspace_repository(
+    db: Session = Depends(get_db),
+) -> WorkspaceRepository:
+    return WorkspaceRepository(db)
