@@ -7,6 +7,7 @@ from app.db.session import SessionLocal
 from app.modules.tasks.repository import TaskRepository
 from app.modules.users.repository import UserRepository
 from app.modules.workspaces.repository import WorkspaceRepository
+from app.modules.workspace_members.repository import WorkspaceMemberRepository
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -34,3 +35,9 @@ def get_workspace_repository(
     db: Session = Depends(get_db),
 ) -> WorkspaceRepository:
     return WorkspaceRepository(db)
+
+
+def get_workspace_member_repository(
+    db: Session = Depends(get_db),
+) -> WorkspaceMemberRepository:
+    return WorkspaceMemberRepository(db)
